@@ -4,7 +4,7 @@
 
 ## Summary
 
-Facilitate the configuration of multiple accounts in mu4e
+Handle multiple sets of Emacs variable bindings.
 
 ## Installing
 
@@ -15,7 +15,7 @@ file:
 (require 'profile)
 (add-hook 'mu4e-compose-pre-hook #'profile-set-account-in-compose)
 (bind-key "C-c F" #'profile-force-account-in-compose)
-(setq profile-account-alist
+(setq profile-binding-alist
   '(("Account1"
      (profile-account-maildir . "/Account1")
      (mu4e-sent-folder "/Account1/Saved Items")
