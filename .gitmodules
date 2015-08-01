@@ -1,0 +1,3 @@
+[submodule "dependencies/mu"]
+	path = dependencies/mu
+	url = https://github.com/djcb/mu.git

@@ -1,0 +1,11 @@
+# Generated files
+*.elc
+*-pkg.el
+*.tar
+TAGS
+doc/profile.texi
+doc/profile.info
+
+# Packages
+.cask
+elpa
