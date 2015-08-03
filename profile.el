@@ -71,7 +71,7 @@ This list is extracted from `profile-binding-alist'."
 
 (defun profile--choose-profile ()
   "Ask the user to choose an profile from `profile-binding-alist'."
-  (let ((profile-names (profile-profile-names)))
+  (let ((profile-names (profile-names)))
     (profile--profile-with-name
      (completing-read "Compose with profile: "
                       profile-names
