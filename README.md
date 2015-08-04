@@ -13,8 +13,8 @@ file:
 
 ```emacs
 (require 'profile)
-(add-hook 'mu4e-compose-pre-hook #'profile-set-account-in-compose)
-(bind-key "C-c F" #'profile-force-account-in-compose)
+(add-hook 'mu4e-compose-pre-hook #'profile-set-profile-in-compose)
+(bind-key "C-c F" #'profile-force-profile-in-compose)
 (setq profile-binding-alist
   '(("Account1"
      (profile-account-maildir . "/Account1")
