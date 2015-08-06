@@ -40,6 +40,7 @@
     mu4e-sent-folder
     mu4e-sent-messages-behavior
     mu4e-drafts-folder
+    mu4e-compose-signature
     smtpmail-queue-dir
     smtpmail-local-domain
     smtpmail-smtp-user
@@ -176,6 +177,38 @@ If NAME or ADDRESS are not provided, use the variables `user-full-name' and
                     (or name user-full-name)
                     (or address user-mail-address)))))
 
+(defun profile--change-signature-in-compose ()
+  "Change the signature of the current message.
+If the previous signature had no newline between the ending and
+the signature, this function removes the blank line before the
+new signature."
+  (save-excursion
+    (set (make-local-variable 'message-signature)
+         (if (boundp 'mu4e-compose-signature) mu4e-compose-signature))
+    (let ((last-line-not-empty nil))
+      ;; If the current message has a signature, delete it first
+      (if (message-goto-signature)
+          (progn
+            (forward-line -2)
+            ;; Check if the current line is empty. If it is not empty, go to the
+            ;; next line and remember the current point
+            (unless (equal (buffer-substring-no-properties
+                            (line-beginning-position) (line-end-position)) "")
+              (progn
+                (setq last-line-not-empty (point))
+                (end-of-line)
+                (open-line 1)))
+            (delete-region (point) (point-max))))
+      (message-insert-signature)
+      ;; If there was no blank line between the ending and the signature, the
+      ;; following code removes the empty line again that
+      ;; `message-insert-signature` includes
+      (if last-line-not-empty
+          (progn
+            (message-goto-signature)
+            (forward-line -1)
+            (flush-lines "^$" last-line-not-empty (point)))))))
+
 ;;;###autoload
 (defun profile-set-profile-from-name (profile-name)
   "Set all bindings of profile named PROFILE-NAME."
@@ -186,7 +219,8 @@ If NAME or ADDRESS are not provided, use the variables `user-full-name' and
 Interactively, ask the user for the profile to use."
   (interactive (list (profile--choose-profile)))
   (profile-set-profile profile)
-  (profile--change-from-in-compose))
+  (profile--change-from-in-compose)
+  (profile--change-signature-in-compose))
 
 (provide 'profile)
 
