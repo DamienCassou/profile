@@ -9,3 +9,4 @@ doc/profile.info
 # Packages
 .cask
 elpa
+/dist
