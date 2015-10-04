@@ -17,7 +17,7 @@ file:
 (bind-key "C-c F" #'profile-force-profile-in-compose)
 (setq profile-binding-alist
   '(("Account1"
-     (profile-account-maildir . "/Account1")
+     (profile-maildir . "/Account1")
      (mu4e-sent-folder . "/Account1/Saved Items")
      (mu4e-drafts-folder . "/Account1/Drafts")
      (mu4e-compose-signature . "Account 1 Signature")
@@ -29,7 +29,7 @@ file:
      (smtpmail-stream-type . starttls)
      (smtpmail-smtp-service . 25))
     ("Account2"
-     (profile-account-maildir . "/Account2")
+     (profile-maildir . "/Account2")
      (mu4e-sent-folder . "/Account2/Saved Items")
      (mu4e-drafts-folder . "/Account2/Drafts")
      (mu4e-compose-signature . "Account 2 Signature")
