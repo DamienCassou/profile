@@ -87,6 +87,14 @@
                  (profile--guess-profile-from-message
                   `(:maildir "/Maildir1/SubDir")))))
 
+(ert-deftest profile-tests-binding-values-for-profiles ()
+  (should (equal '("me@profile1.fr" "me@profile2.fr")
+                 (profile-binding-values-for-profiles 'user-mail-address))))
+
+(ert-deftest profile-tests-email-addresses ()
+  (should (equal '("me@profile1.fr" "me@profile2.fr")
+                 (profile-email-addresses))))
+
 (eval-when-compile (defvar profile-maildir))
 
 (ert-deftest profile-tests-set-profile ()

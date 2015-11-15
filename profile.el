@@ -70,6 +70,12 @@
 This list is extracted from `profile-binding-alist'."
   (mapcar #'car profile-binding-alist))
 
+(defun profile-email-addresses ()
+  "Return a list of all user email addresses.
+This list is extracted from `profile-binding-alist' and occurences of
+`user-mail-address' in this list."
+  (profile-binding-values-for-profiles 'user-mail-address))
+
 (defun profile--choose-profile ()
   "Ask the user to choose an profile from `profile-binding-alist'."
   (let ((profile-names (profile-names)))
@@ -85,6 +91,13 @@ This list is extracted from `profile-binding-alist'."
 (defun profile--bindings (profile)
   "Return an alist of all bindings for PROFILE in `profile-binding-alist."
   (cdr profile))
+
+(defun profile-binding-values-for-profiles (binding-name)
+  "Collect all values of BINDING-NAME in `profile-binding-alist'."
+  (mapcar
+   (lambda (profile)
+     (profile--binding-value-for-profile profile binding-name))
+   profile-binding-alist))
 
 (defun profile--binding-value-for-profile (profile binding-name)
   "For PROFILE, get the value associated with BINDING-NAME."
