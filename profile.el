@@ -162,6 +162,23 @@ return nil."
              mu4e-compose-parent-message)
     (profile--guess-profile-from-message mu4e-compose-parent-message)))
 
+(defun profile--message-from-address ()
+  "Return the From email address of the current buffer."
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers-or-head)
+      (let ((from (message-fetch-field "from")))
+        (cadr (mail-extract-address-components from))))))
+
+(defun profile-set-profile-from-message-from-field ()
+  "Use `profile-set-profile' based on the From field of current message."
+  (require 'cl-extra) ;; for #'cl-equalp
+  (profile-set-profile
+   (profile--profile-for-binding
+    (cons 'user-mail-address (profile--message-from-address))
+    #'cl-equalp ;; compare strings case insensitively
+    )))
+
 ;;;###autoload
 (defun profile-set-profile (profile)
   "Set all bindings of PROFILE."
