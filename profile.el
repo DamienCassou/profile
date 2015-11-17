@@ -70,6 +70,15 @@
                        :key-type variable
                        :options ,profile--variable-options)))
 
+(defcustom profile-noisy-query nil
+  "Query to match noisy mailing lists."
+  :group 'profile)
+
+(defcustom profile-folder-query-format "folder:\"%s\""
+  "Query to match a particular maildir folder.
+Use maildir:/\"%s\" in mu4e."
+  :group 'profile)
+
 (defun profile-names ()
   "Return a list of all user profile names.
 This list is extracted from `profile-binding-alist'."
@@ -193,13 +202,55 @@ return nil."
     #'cl-equalp ;; compare strings case insensitively
     )))
 
+
+(defun profile-folder-query (maildir)
+  "Return the query to match emails in MAILDIR."
+  (format profile-folder-query-format maildir))
+
+(defun profile-sent-query ()
+  "Return a query matching all emails sent by the user."
+  (mapconcat
+   (lambda (address) (format "from:%s" address))
+   (profile-all-email-addresses)
+   " OR "))
+
+(defun profile-inbox-folder-or-tag-query ()
+  "Match all messages in inbox."
+  (format "(%s OR %s) AND (tag:\\\\Inbox OR NOT %s)"
+          (mapconcat
+           (lambda (profile-name) (profile-folder-query (format "%s/INBOX" profile-name)))
+           (profile-names)
+           " OR ")
+          (profile-folder-query "GMail/All Mail")
+          (profile-folder-query "GMail/All Mail")))
+
+(defun profile-inbox-query ()
+  "Match all messages in inbox but noisy mailing lists.
+If a message is in a noisy mailing list (as of `profile-noisy-query') and
+the user is a direct recipient, this query will still match the message:
+that way direct messages are directly visible."
+  (if profile-noisy-query
+      (format "(%s) AND (NOT (%s) OR recip:damien*)"
+              (profile-inbox-folder-or-tag-query)
+              profile-noisy-query)
+    (profile-inbox-folder-or-tag-query)))
+
+(defun profile-noisy-unarchived-list-query ()
+  "Return unarchived emails in noisy mailing lists.
+Noisy mailing lists are defined in `profile-noisy-query'."
+  (format "(%s) AND (%s)"
+          (profile-inbox-folder-or-tag-query)
+          profile-noisy-query))
+
+
 ;;;###autoload
-(defun profile-set-profile (profile)
+(defun profile-set-profile (&optional profile)
   "Set all bindings of PROFILE."
   (interactive (list (profile--choose-profile)))
-  (mapc (lambda (binding) (set (profile--binding-name binding)
-                          (profile--binding-value binding)))
-        (profile--bindings profile)))
+  (let ((profile (or profile (profile--choose-profile))))
+    (mapc (lambda (binding) (set (profile--binding-name binding)
+                            (profile--binding-value binding)))
+          (profile--bindings profile))))
 
 ;;;###autoload
 (defun profile-set-profile-in-compose ()
