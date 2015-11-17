@@ -50,6 +50,11 @@
     )
   "List of variables that a user may want to assign for each profile.")
 
+(defcustom profile-extra-email-addresses '()
+  "List of your email addresses not in any profile."
+  :group 'profile
+  :type '(repeat string))
+
 (defconst profile--variable-options
   (mapcar (lambda (varname) `((variable-item ,varname) ,(custom-variable-type varname)))
           profile--potential-variables)
@@ -73,8 +78,17 @@ This list is extracted from `profile-binding-alist'."
 (defun profile-email-addresses ()
   "Return a list of all user email addresses.
 This list is extracted from `profile-binding-alist' and occurences of
-`user-mail-address' in this list."
+`user-mail-address' in this list.  Use function
+`profile-all-email-addresses' to get all addresses returned by
+`profile-email-addresses' plus the ones of the variable
+`profile-extra-email-addresses'."
   (profile-binding-values-for-profiles 'user-mail-address))
+
+(defun profile-all-email-addresses ()
+  "Return all user email addresses.
+This results in the concatenation of function `profile-email-addresses' and
+variable `profile-extra-email-addresses'."
+  (nconc (profile-email-addresses) profile-extra-email-addresses))
 
 (defun profile--choose-profile ()
   "Ask the user to choose an profile from `profile-binding-alist'."
