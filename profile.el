@@ -286,6 +286,20 @@ If NAME or ADDRESS are not provided, use the variables `user-full-name' and
                     (or name user-full-name)
                     (or address user-mail-address)))))
 
+(defun profile--end-of-signature ()
+  "Return point after signature and before mml attachments.
+If there is no attachment at the end of signature or if there is no
+signature, return `point-max'."
+  (save-excursion
+    (if (not (message-goto-signature))
+        ;; no signature in the message
+        (point-max)
+      (let ((signature-start (point)))
+        (goto-char (point-max))
+        (while (looking-back "<#part .*[ \t\n]*<#/part>[ \t\n]*" signature-start)
+          (goto-char (match-beginning 0)))
+        (point)))))
+
 (defun profile--change-signature-in-compose ()
   "Change the signature of the current message.
 If the previous signature had no newline between the ending and
@@ -309,7 +323,7 @@ new signature."
                 (setq last-line-not-empty (point))
                 (end-of-line)
                 (open-line 1)))
-            (delete-region (point) (point-max))))
+            (delete-region (point) (profile--end-of-signature))))
       (message-insert-signature)
       ;; If there was no blank line between the ending and the signature, the
       ;; following code removes the empty line again that
@@ -410,4 +424,4 @@ Interactively, ask the user for the profile to use."
 
 ;;; profile.el ends here
 
-;;  LocalWords:  alist maildir
+;;  LocalWords:  alist maildir mml

@@ -164,6 +164,52 @@
     (message-beginning-of-line)
     (should (looking-at "new signature"))))
 
+(ert-deftest profile-tests-change-signature-in-compose-with-attachment ()
+  (with-current-buffer (get-buffer-create "*ert-profilel-w-attachment*")
+    (insert "From: foo\n--text follows this line--\ncontent\n-- \nold signature\n<#part type=\"text/x-org\" filename=\"file.org\" disposition=inline>
+<#/part>")
+    (setq mu4e-compose-signature "new signature")
+    (message "BEFORE")
+    (message (buffer-substring-no-properties (point-min) (point-max)))
+    (message "AFTER")
+    (profile--change-signature-in-compose)
+    (message-goto-body)
+    (message "BEFORE")
+    (message (buffer-substring-no-properties (point-min) (point-max)))
+    (message "AFTER")
+    (should (re-search-forward "<#part"))
+    (should-error (re-search-forward "<#part"))))
+
+(ert-deftest profile-tests-change-signature-in-compose-with-2-attachments ()
+  (with-current-buffer (get-buffer-create "*ert-profilel-w-2-attachments*")
+    (insert "From: foo\n--text follows this line--\ncontent\n-- \nold signature\n<#part type=\"text/x-org\" filename=\"file.org\" disposition=inline>
+<#/part>
+<#part type=\"text/x-org\" filename=\"file2.org\" disposition=inline>
+<#/part>")
+    (setq mu4e-compose-signature "new signature")
+    (profile--change-signature-in-compose)
+    (message-goto-body)
+    ;; search for 2 attachments
+    (should (re-search-forward "<#part"))
+    (should (re-search-forward "<#part"))
+    (should-error (re-search-forward "<#part"))))
+
+(ert-deftest profile-tests-change-signature-in-compose-with-attachment-before-and-after-signature ()
+  (with-current-buffer (get-buffer-create "*ert-profilel-w-attachment-before-and-after-signature*")
+    (insert "From: foo\n--text follows this line--\ncontent\n<#part type=\"text/x-org\" filename=\"file.org\" disposition=inline>
+<#/part>-- \nold signature\n<#part type=\"text/x-org\" filename=\"file.org\" disposition=inline>
+<#/part>
+<#part type=\"text/x-org\" filename=\"file2.org\" disposition=inline>
+<#/part>")
+    (setq mu4e-compose-signature "new signature")
+    (profile--change-signature-in-compose)
+    (message-goto-body)
+    ;; search for 3 attachments
+    (should (re-search-forward "<#part"))
+    (should (re-search-forward "<#part"))
+    (should (re-search-forward "<#part"))
+    (should-error (re-search-forward "<#part"))))
+
 (provide 'profile-tests)
 
 ;;; profile-tests.el ends here
