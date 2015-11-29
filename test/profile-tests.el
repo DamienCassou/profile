@@ -29,7 +29,9 @@
 
 (require 'profile)
 
-(eval-when-compile (require 'cl-macs))
+(eval-when-compile
+  (require 'cl-macs)
+  (defvar mu4e-compose-signature))
 
 (setq profile-binding-alist
       '(("Profile1"
@@ -127,7 +129,7 @@
 (ert-deftest profile-tests-change-signature-in-compose-with-newline ()
   (with-current-buffer (get-buffer-create "*ert-profilel-w-newline*")
     (insert "From: foo\n--text follows this line--\ncontent\n\n-- \nold signature")
-    (setq mu4e-compose-signature "new signature")
+    (setq message-signature "new signature")
     (profile--change-signature-in-compose)
     (message-goto-signature)
     (forward-line -3)
@@ -137,7 +139,7 @@
 (ert-deftest profile-tests-change-signature-in-compose-without-newline ()
   (with-current-buffer (get-buffer-create "*ert-profilel-wo-newline*")
     (insert "From: foo\n--text follows this line--\ncontent\n-- \nold signature")
-    (setq mu4e-compose-signature "new signature")
+    (setq message-signature "new signature")
     (profile--change-signature-in-compose)
     (message-goto-signature)
     (forward-line -2)
@@ -146,6 +148,15 @@
 
 (ert-deftest profile-tests-change-signature-in-compose-without-signature ()
   (with-current-buffer (get-buffer-create "*ert-profilel-wo-signature*")
+    (insert "From: foo\n--text follows this line-- \ncontent")
+    (setq message-signature "new signature")
+    (profile--change-signature-in-compose)
+    (message-goto-signature)
+    (message-beginning-of-line)
+    (should (looking-at "new signature"))))
+
+(ert-deftest profile-tests-change-signature-in-compose-with-mu4e ()
+  (with-current-buffer (get-buffer-create "*ert-profilel-w-mu4e*")
     (insert "From: foo\n--text follows this line-- \ncontent")
     (setq mu4e-compose-signature "new signature")
     (profile--change-signature-in-compose)

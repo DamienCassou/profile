@@ -279,7 +279,9 @@ the signature, this function removes the blank line before the
 new signature."
   (save-excursion
     (set (make-local-variable 'message-signature)
-         (if (boundp 'mu4e-compose-signature) mu4e-compose-signature))
+         (if (boundp 'mu4e-compose-signature)
+             mu4e-compose-signature
+           message-signature))
     (let ((last-line-not-empty nil))
       ;; If the current message has a signature, delete it first
       (if (message-goto-signature)
