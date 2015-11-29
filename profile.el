@@ -28,6 +28,8 @@
 
 (require 'message)
 (require 'cus-edit)
+(require 'smtpmail)
+(require 'wid-edit)
 
 (defgroup profile nil
   "Handle multiple sets of Emacs variable bindings."
@@ -84,6 +86,13 @@ Use maildir:/\"%s\" in mu4e."
 This list is extracted from `profile-binding-alist'."
   (mapcar #'car profile-binding-alist))
 
+(defmacro profile-profiles-do (var &rest body)
+  "Bind VAR to each profile and evaluate BODY for each."
+  (declare (indent 1))
+  `(mapc (lambda (,var)
+           ,@body)
+         profile-binding-alist))
+
 (defun profile-email-addresses ()
   "Return a list of all user email addresses.
 This list is extracted from `profile-binding-alist' and occurences of
@@ -126,6 +135,11 @@ variable `profile-extra-email-addresses'."
   "For PROFILE, get the value associated with BINDING-NAME."
   (cdr (assoc binding-name
               (profile--bindings profile))))
+
+(defun profile-profile-binding-value (profile binding-name)
+  "Get the PROFILE's value associated with BINDING-NAME or current value."
+  (or (profile--binding-value-for-profile profile binding-name)
+      (eval binding-name)))
 
 (defun profile--profile-with-name (profile-name)
   "Return the profile with PROFILE-NAME."
@@ -305,6 +319,79 @@ new signature."
             (message-goto-signature)
             (forward-line -1)
             (flush-lines "^$" last-line-not-empty (point)))))))
+
+
+;;; This section facilitates the use of `smtpmail-queue-mail'
+
+(defun profile-queue-header ()
+  "Display smtp queue header in current buffer."
+  (widget-insert
+   "Queuing emails: queuing "
+   (if smtpmail-queue-mail "active" "inactive")
+   " ")
+  (widget-create 'push-button
+                 :notify (lambda (&rest ignore)
+                           (setq smtpmail-queue-mail
+                                 (not smtpmail-queue-mail))
+                           (notmuch-hello-update))
+                 (if smtpmail-queue-mail "deactivate" "activate")))
+
+(defun profile-queue-size (profile)
+  "Return the number of emails in PROFILE's queue."
+  (let ((queue-file
+         (profile-profile-binding-value profile 'smtpmail-queue-index-file))
+        (queue-dir
+         (profile-profile-binding-value profile 'smtpmail-queue-dir)))
+    (condition-case nil
+        (with-temp-buffer
+          (insert-file-contents (expand-file-name queue-file queue-dir))
+          (count-lines (point-min) (point-max)))
+      (error 0))))
+
+(defun profile-queue-print-profile-queue (profile)
+  "Display information about the PROFILE's queue.
+Don't display anything if queue is empty."
+  (let ((queue-size (profile-queue-size profile)))
+    (when (> queue-size 0)
+      (widget-insert
+       (profile--name profile)
+       " "
+       (format "%s" queue-size)))))
+
+(defun profile-queue-counts ()
+  "Display information about each profile with queued emails."
+  (profile-profiles-do profile
+    (profile-queue-print-profile-queue profile)
+    (widget-insert "\n")))
+
+(defun profile-queue-message-in-queue-p ()
+  "Return true iff a queue contain at least one message."
+  (seq-some
+   (lambda (profile) (> (profile-queue-size profile) 0))
+   profile-binding-alist))
+
+(defun profile-queue-show-section-p ()
+  "Return true iff the queue section should be displayed."
+  (or
+   smtpmail-queue-mail
+   (profile-queue-message-in-queue-p)))
+
+(defun profile-queue-insert-section ()
+  "Show in current buffer a section containing emails in queue.
+You have to configure `smtpmail-queue-dir' for each profile.  See also
+`smtpmail-queue-mail'."
+  (when (profile-queue-show-section-p)
+    (profile-queue-header)
+    (widget-insert "\n\n")
+    (profile-queue-counts)))
+
+;;;###autoload
+(defun profile-queue-empty-queues ()
+  "Empty  each profile's smtpmail queue."
+  (interactive)
+  (profile-profiles-do profile
+    (profile-set-profile profile)
+    (smtpmail-send-queued-mail)))
 
 ;;;###autoload
 (defun profile-set-profile-from-name (profile-name)
