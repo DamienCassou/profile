@@ -390,6 +390,7 @@ Don't display anything if queue is empty."
    smtpmail-queue-mail
    (profile-queue-message-in-queue-p)))
 
+;;;###autoload
 (defun profile-queue-insert-section ()
   "Show in current buffer a section containing emails in queue.
 You have to configure `smtpmail-queue-dir' for each profile.  See also
