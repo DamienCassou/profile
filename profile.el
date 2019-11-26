@@ -95,7 +95,7 @@ This list is extracted from `profile-binding-alist'."
 
 (defun profile-email-addresses ()
   "Return a list of all user email addresses.
-This list is extracted from `profile-binding-alist' and occurences of
+This list is extracted from `profile-binding-alist' and occurrences of
 `user-mail-address' in this list.  Use function
 `profile-all-email-addresses' to get all addresses returned by
 `profile-email-addresses' plus the ones of the variable
